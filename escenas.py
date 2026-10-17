@@ -1,422 +1,411 @@
-"""
-escenas.py - Las escenas del video del Grupo 4, en orden.
+"""Escenas del EID Grupo 4 (Manim Community).
 
-MAPA DEL VIDEO  (sección de la pauta -> escena -> concepto)
---------------------------------------------------------------------
-    1. Teoría (planteamiento)     -> RegionInicial
-    2. Teoría (partición)         -> ParticionInicial
-    3. Ejemplo propio             -> SumaRiemannConstruccion
-    4. Refinamiento (CLAVE)       -> RefinamientoProgresivo
-    5. Conexión suma -> integral  -> TransicionSumaIntegral
-    6. El límite (CLAVE)          -> LimiteProceso
-    7. Respuesta + cierre         -> RespuestaPreguntaCentral
-    (pendiente) Presentación      -> Presentacion
-    (pendiente) Créditos/fuentes  -> Creditos
---------------------------------------------------------------------
+Storyboard: guion_storyboard_EID_G04_v2.tex. El video base no incluye audio:
+las pausas están previstas para sincronizar narración propia al editar el MP4.
 
-Los parámetros matemáticos y de estilo están en parametros.py.
-Las funciones auxiliares están en utilidades.py.
+Concepto central: la integral definida es el LIMITE de sumas de Riemann;
+no se obtiene sustituyendo símbolos de manera individual.
 """
 
 from manim import *
 import parametros as P
 import utilidades as U
 
+# Texto visible intencionalmente breve: la explicación completa será oral.
+TEXTO = "DejaVu Sans"
+COLOR_BASE = WHITE
+AZUL = BLUE_C
+NARANJA = ORANGE
+VERDE = GREEN_C
+DORADO = YELLOW
 
-# =============================================================================
-# SECCIÓN 1 - Teoría: planteamiento del problema
-# =============================================================================
 
+def texto(cadena, tam=29, color=COLOR_BASE):
+    obj = Text(cadena, font=TEXTO, font_size=tam, color=color)
+    if obj.width > 12.4:
+        obj.scale_to_fit_width(12.4)
+    return obj
+
+
+def encabezado(cadena):
+    obj = texto(cadena, tam=31)
+    obj.to_edge(UP, buff=0.34)
+    return obj
+
+
+def matematica(cadena, escala=0.9):
+    obj = MathTex(cadena).scale(escala)
+    if obj.width > 12.4:
+        obj.scale_to_fit_width(12.4)
+    return obj
+
+
+def pie(obj):
+    obj.to_edge(DOWN, buff=0.37)
+    return obj
+
+
+def plano(funcion=True, lado_izquierdo=True):
+    """Ejes con escala consistente; se reserva espacio para fórmulas a la derecha."""
+    ax = Axes(**P.AXES_CONFIG)
+    ax.shift(LEFT * (2.35 if lado_izquierdo else 0) + DOWN * 0.4)
+    etiquetas = ax.get_axis_labels(x_label="x", y_label="f(x)")
+    curva = ax.plot(P.F, x_range=[P.A, P.B], **P.CURVA_ESTILO) if funcion else VGroup()
+    return ax, etiquetas, curva
+
+
+def estado_limpio(escena, tiempo=0.55):
+    if escena.mobjects:
+        escena.play(FadeOut(*escena.mobjects), run_time=tiempo)
+
+
+def indicador_rectangulo(ax, izq, der, altura, color=NARANJA, opacidad=0.38):
+    return Polygon(
+        ax.c2p(izq, 0), ax.c2p(der, 0), ax.c2p(der, altura), ax.c2p(izq, altura),
+        stroke_color=color, stroke_width=1.3, fill_color=color,
+        fill_opacity=opacidad,
+    )
+
+
+def pausa(escena, segundos):
+    """Espacio de locución; modificable globalmente en parametros.py."""
+    escena.wait(segundos * P.FACTOR_PAUSAS)
+
+
+# ---------------------------------------------------------
+# 1. Presentación obligatoria (confirmar integrantes antes del render final)
+# ---------------------------------------------------------
+class Presentacion(Scene):
+    def construct(self):
+        self.play(Write(texto("Cálculo Intermedio · EID · Grupo 4", 32).shift(UP * 2.8)), run_time=1.5)
+        tema = texto("Del símbolo de sumatoria\nal símbolo de integral", 43, AZUL)
+        self.play(FadeIn(tema, shift=UP * 0.25), run_time=1.1)
+        pregunta = texto("¿Cómo pasamos de una suma con un número finito\nde rectángulos a una integral definida?", 25)
+        pregunta.next_to(tema, DOWN, buff=0.65)
+        self.play(Write(pregunta), run_time=1.4)
+        integrantes = texto(P.TEXTO_INTEGRANTES, 20, GRAY_B)
+        integrantes.to_edge(DOWN, buff=0.65)
+        self.play(FadeIn(integrantes), run_time=0.8)
+        pausa(self, 5.5)
+        estado_limpio(self)
+
+
+# ---------------------------------------------------------
+# 2. Motivación: un automóvil a rapidez constante
+# ---------------------------------------------------------
+class AutoVelocidadConstante(Scene):
+    def construct(self):
+        self.add(encabezado("Una rapidez constante: un área fácil de calcular"))
+        ax = Axes(
+            x_range=[0, 6, 1], y_range=[0, 8, 2], x_length=7, y_length=3.7,
+            axis_config={"include_tip": True, "stroke_width": 2},
+        ).shift(LEFT * 2.35 + DOWN * 0.28)
+        etiquetas = VGroup(
+            matematica(r"t\ (\mathrm{s})", 0.7).next_to(ax.x_axis, RIGHT, buff=0.15),
+            matematica(r"v\ (\mathrm{m/s})", 0.65).next_to(ax.y_axis, UP, buff=0.1),
+        )
+        rect = indicador_rectangulo(ax, 0, 5, 6, color=AZUL, opacidad=0.32)
+        linea = Line(ax.c2p(0, 6), ax.c2p(5, 6), color=VERDE, stroke_width=4)
+        self.play(Create(ax), FadeIn(etiquetas), run_time=1.8)
+        self.play(Create(linea), run_time=1.3)
+        self.play(FadeIn(rect), run_time=1.2)
+        info = VGroup(
+            matematica(r"v=6\ \mathrm{m/s}", 0.85),
+            matematica(r"\Delta t=5\ \mathrm{s}", 0.85),
+            matematica(r"d=v\,\Delta t", 0.92),
+            matematica(r"d=30\ \mathrm{m}", 1.05).set_color(DORADO),
+        ).arrange(DOWN, buff=0.38).move_to(RIGHT * 3.8 + DOWN * 0.06)
+        for elemento in info:
+            self.play(Write(elemento), run_time=0.8)
+            pausa(self, 1.3)
+        self.play(Write(pie(texto("Área del rectángulo = distancia recorrida", 25))), run_time=1.1)
+        pausa(self, 4.0)
+        estado_limpio(self)
+
+
+# ---------------------------------------------------------
+# 3. Motivación: ¿qué ocurre si la rapidez varía?
+# ---------------------------------------------------------
+class AutoVelocidadVariable(Scene):
+    def construct(self):
+        self.add(encabezado("¿Y si la rapidez cambia durante el recorrido?"))
+        ax = Axes(
+            x_range=[0, 6, 1], y_range=[0, 12, 2], x_length=7.4, y_length=3.8,
+            axis_config={"include_tip": True, "stroke_width": 2},
+        ).shift(DOWN * 0.38)
+        curva = ax.plot(lambda t: 2 + 0.35 * t * t, x_range=[0, 5], color=VERDE, stroke_width=4)
+        relleno = ax.get_area(curva, x_range=[0, 5], color=AZUL, opacity=0.24)
+        txt = texto("La rapidez ya no es una única altura", 25)
+        pie(txt)
+        self.play(Create(ax), run_time=1.5)
+        self.play(Create(curva), run_time=1.9)
+        self.play(FadeIn(relleno), Write(txt), run_time=1.5)
+        pausa(self, 3.5)
+        self.play(FadeOut(txt))
+        # Cuatro rectángulos ilustrativos: sin convertir el automóvil en otro ejemplo principal.
+        rects = VGroup()
+        for i in range(4):
+            x0, x1 = i * 1.25, (i + 1) * 1.25
+            tm = (x0 + x1) / 2
+            rects.add(indicador_rectangulo(ax, x0, x1, 2 + 0.35 * tm * tm, NARANJA, 0.26))
+        self.play(LaggedStart(*[FadeIn(r) for r in rects], lag_ratio=0.15), run_time=2.0)
+        self.play(Write(pie(texto("Aproximar por intervalos y sumar aportes", 26, DORADO))), run_time=1.1)
+        pausa(self, 4.5)
+        estado_limpio(self)
+
+
+# ---------------------------------------------------------
+# 4. Se establece el ejemplo matemático principal.
+# ---------------------------------------------------------
 class RegionInicial(Scene):
-    """
-    QUÉ MUESTRA : la región bajo f(x) en [a, b], sombreada.
-    CONCEPTO    : el problema del área; por qué conviene aproximar.
-    PARÁMETROS  : A, B, F (parametros.py).
-    """
-
     def construct(self):
-        titulo = Tex("Del símbolo de sumatoria al símbolo de integral")
-        titulo.scale(P.TITULO_ESCALA)
-        subtitulo = Tex("Grupo 4 - Eje 4")
-        subtitulo.scale(P.SUBTITULO_ESCALA)
-        subtitulo.next_to(titulo, DOWN)
-
-        self.play(Write(titulo))
-        self.play(FadeIn(subtitulo))
-        self.wait(1.5)
-        self.play(FadeOut(titulo, subtitulo))
-
-        ax, ax_labels, curva = U.crear_ejes_y_curva()
-
-        self.play(Create(ax), Write(ax_labels))
-        self.play(Create(curva))
-        self.wait(0.5)
-
-        region = ax.get_area(curva, x_range=[P.A, P.B], color=BLUE, opacity=0.15)
-        texto_region = Tex("Región bajo la curva en $[a,b]$")
-        texto_region.scale(P.TEX_ESCALA)
-        texto_region.to_edge(UP)
-
-        self.play(FadeIn(region), Write(texto_region))
-        self.wait(2)
-
-        pregunta = Tex(r"¿Cómo aproximamos esta región con rectángulos?")
-        pregunta.scale(P.TITULO_ESCALA)
-        pregunta.to_edge(DOWN)
-
-        self.play(Write(pregunta))
-        self.wait(3)
-
-        self.play(FadeOut(region, texto_region, pregunta, curva, ax, ax_labels))
+        self.add(encabezado("Nuestro ejemplo: una región bajo una curva"))
+        ax, etiquetas, curva = plano(lado_izquierdo=True)
+        relleno = ax.get_area(curva, x_range=[P.A, P.B], color=AZUL, opacity=0.3)
+        guia_a = DashedLine(ax.c2p(P.A, 0), ax.c2p(P.A, P.F(P.A)), color=GRAY_B)
+        guia_b = DashedLine(ax.c2p(P.B, 0), ax.c2p(P.B, P.F(P.B)), color=GRAY_B)
+        self.play(Create(ax), FadeIn(etiquetas), run_time=1.1)
+        self.play(Create(curva), FadeIn(relleno), Create(guia_a), Create(guia_b), run_time=2.1)
+        derecha = VGroup(
+            matematica(r"f(x)=\frac12(x-1)^2+1", 0.92),
+            matematica(r"[a,b]=[0,3]", 0.92),
+            texto("Continua y positiva", 24, VERDE),
+        ).arrange(DOWN, buff=0.6).move_to(RIGHT * 3.6 + UP * 0.05)
+        self.play(LaggedStart(*[Write(e) for e in derecha], lag_ratio=0.2), run_time=3.2)
+        self.play(Write(pie(texto("Buscamos el área exacta, empezando por aproximaciones", 24))), run_time=1.0)
+        pausa(self, 5.8)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 2 - Teoría: partición del intervalo
-# =============================================================================
-
+# ---------------------------------------------------------
+# 5. Partición, ancho de cada subintervalo y punto muestra
+# ---------------------------------------------------------
 class ParticionInicial(Scene):
-    """
-    QUÉ MUESTRA : la división de [a, b] en n subintervalos con ancho Δx.
-    CONCEPTO    : partición, n, Δx = (b-a)/n, los puntos x_i.
-    PARÁMETROS  : A, B, N_INICIAL.
-    """
-
     def construct(self):
-        n = P.N_INICIAL
-        dx = (P.B - P.A) / n
-
-        ax, ax_labels, curva = U.crear_ejes_y_curva()
-        self.add(ax, ax_labels, curva)
-
-        titulo = Tex(r"Partición del intervalo $[a,b]$ en $n$ subintervalos")
-        titulo.scale(P.TITULO_ESCALA)
-        titulo.to_edge(UP)
-        self.play(Write(titulo))
-
-        # Líneas de partición
-        particion_lines = VGroup()
-        for i in range(n + 1):
-            x = P.A + i * dx
-            particion_lines.add(
-                ax.get_vertical_line(ax.c2p(x, P.F(x)), **P.LINEAS_MUESTRA_ESTILO)
-            )
-
-        self.play(Create(particion_lines), run_time=1.5)
-        self.wait(0.5)
-
-        # Ancho Δx
-        p0 = ax.c2p(P.A, 0)
-        p1 = ax.c2p(P.A + dx, 0)
-        flecha_dx = DoubleArrow(p0, p1, color=YELLOW, buff=0)
-        tex_dx = MathTex(r"\Delta x = \frac{b-a}{n}")
-        tex_dx.scale(P.TEX_ESCALA)
-        tex_dx.next_to(flecha_dx, UP, buff=0.15)
-
-        self.play(Create(flecha_dx), Write(tex_dx))
-        self.wait(2)
-
-        tex_part = MathTex(r"a = x_0 < x_1 < \cdots < x_i < \cdots < x_n = b")
-        tex_part.scale(P.TEX_ESCALA)
-        tex_part.to_edge(DOWN)
-        self.play(Write(tex_part))
-        self.wait(3)
-
-        self.play(
-            FadeOut(
-                titulo, particion_lines, flecha_dx, tex_dx,
-                tex_part, curva, ax, ax_labels,
-            )
-        )
+        self.add(encabezado("Dividimos el intervalo en cuatro partes"))
+        ax, etiquetas, curva = plano(lado_izquierdo=True)
+        self.add(ax, etiquetas, curva)
+        dx = (P.B-P.A)/P.N_INICIAL
+        divisiones = VGroup()
+        for i in range(P.N_INICIAL + 1):
+            xi = P.A + i*dx
+            divisiones.add(DashedLine(ax.c2p(xi, 0), ax.c2p(xi, P.F(xi)), color=GRAY_B))
+        self.play(Create(divisiones), run_time=2.0)
+        p1, p2 = ax.c2p(P.A, -0.1), ax.c2p(P.A + dx, -0.1)
+        marcador = DoubleArrow(p1, p2, buff=0, color=DORADO, stroke_width=3, tip_length=0.15)
+        self.play(Create(marcador), run_time=1)
+        lateral = VGroup(
+            matematica(r"n=4", 0.94),
+            matematica(r"\Delta x=\frac{b-a}{n}", 0.98),
+            matematica(r"\Delta x=\frac{3-0}{4}=\frac34", 0.93).set_color(DORADO),
+        ).arrange(DOWN, buff=0.58).move_to(RIGHT * 3.6)
+        for e in lateral:
+            self.play(Write(e), run_time=0.9)
+            pausa(self, 1.2)
+        self.play(Write(pie(texto("Cada rectángulo tendrá base Δx", 24))), run_time=1.0)
+        pausa(self, 5)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 3 - Ejemplo propio: construcción de la suma de Riemann
-# =============================================================================
-
+# ---------------------------------------------------------
+# 6. Suma S4 con puntos medios: parte que no debe quedarse como opcional
+# ---------------------------------------------------------
 class SumaRiemannConstruccion(Scene):
-    """
-    QUÉ MUESTRA : rectángulo a rectángulo, x_i^*, f(x_i^*) y el aporte f(x_i^*)Δx.
-    CONCEPTO    : la suma de Riemann S_n = Σ f(x_i^*) Δx (punto medio).
-    PARÁMETROS  : A, B, N_INICIAL, F.
-    """
-
     def construct(self):
+        self.add(encabezado("Elegimos puntos medios y construimos la suma"))
+        ax, etiquetas, curva = plano(lado_izquierdo=True)
+        self.add(ax, etiquetas, curva)
         n = P.N_INICIAL
-        dx = (P.B - P.A) / n
-
-        ax, ax_labels, curva = U.crear_ejes_y_curva()
-        self.add(ax, ax_labels, curva)
-
-        titulo = Tex(r"Suma de Riemann: $\sum_{i=1}^{n} f(x_i^*)\,\Delta x$")
-        titulo.scale(P.TITULO_ESCALA)
-        titulo.to_edge(UP, buff=P.TITULO_BUFF)
-        self.play(Write(titulo))
-        self.wait(0.5)
-
-        # Grupo con todo lo que se construye (para desvanecerlo junto al final)
-        contenido = VGroup()
-
-        for i in range(1, n + 1):
-            x_left = P.A + (i - 1) * dx
-            x_right = P.A + i * dx
-            x_star = U.punto_muestra(x_left, x_right, "midpoint")
-            y_star = P.F(x_star)
-
-            rect = U.crear_rectangulo(ax, x_left, x_right, y_star)
-            elems = U.crear_elementos_muestra(ax, i, x_star, y_star)
-
-            # El aporte f(x_i^*)Δx va DENTRO del rectángulo (no encima),
-            # así nunca se superpone con la curva.
-            term = MathTex(r"f(x_" + str(i) + r"^*)\,\Delta x")
-            term.scale(0.5)
-            term.move_to(rect.get_center())
-
-            self.play(Create(rect), run_time=0.4)
-            self.play(FadeIn(elems["dot"], elems["label_xstar"]), run_time=0.2)
-            self.play(Create(elems["h_line"]), run_time=0.2)
-            self.play(Write(term), run_time=0.35)
-            self.wait(0.15)
-
-            contenido.add(
-                rect,
-                elems["dot"], elems["label_xstar"], elems["h_line"],
-                term,
-            )
-
-        self.wait(1.5)
-
-        # Fórmula completa + valor numérico
-        valor = U.valor_suma_riemann(n, "midpoint")
-        suma_total = MathTex(
-            r"S_n = \sum_{i=1}^{n} f(x_i^*)\,\Delta x \approx "
-            + f"{valor:.4f}"
-        )
-        suma_total.scale(P.MATH_TEX_ESCALA)
-        suma_total.to_edge(DOWN, buff=0.4)
-
-        self.play(Write(suma_total))
-        self.wait(3)
-
-        self.play(FadeOut(titulo, contenido, ax, ax_labels, curva, suma_total))
+        dx = (P.B-P.A)/n
+        formula_m = matematica(r"x_i^*=\left(i-\frac12\right)\Delta x", 0.84)
+        formula_m.move_to(RIGHT * 3.55 + UP * 1.52)
+        self.play(Write(formula_m), run_time=1.8)
+        puntos = matematica(r"\frac38,\ \frac98,\ \frac{15}8,\ \frac{21}8", 0.85)
+        puntos.next_to(formula_m, DOWN, buff=0.38)
+        self.play(Write(puntos), run_time=1.7)
+        rects = VGroup()
+        for i in range(1, n+1):
+            x_left, x_right = P.A+(i-1)*dx, P.A+i*dx
+            xstar = U.punto_muestra(x_left, x_right)
+            alto = P.F(xstar)
+            rect = indicador_rectangulo(ax, x_left, x_right, alto)
+            marcador = Dot(ax.c2p(xstar, alto), color=DORADO, radius=0.065)
+            rects.add(rect, marcador)
+            self.play(FadeIn(rect), FadeIn(marcador), run_time=0.95)
+            pausa(self, 1.25)
+        aporte = matematica(r"A_i=f(x_i^*)\,\Delta x", 0.95)
+        aporte.move_to(RIGHT * 3.5 + DOWN * 0.12)
+        self.play(Write(aporte), run_time=1.3)
+        pausa(self, 2.4)
+        self.play(FadeOut(aporte), run_time=0.5)
+        sum_line1 = matematica(r"S_4=\frac34\left[f\left(\frac38\right)+f\left(\frac98\right)\right.", 0.72)
+        sum_line2 = matematica(r"\left.\qquad+f\left(\frac{15}8\right)+f\left(\frac{21}8\right)\right]", 0.75)
+        desarrollo = VGroup(sum_line1, sum_line2).arrange(DOWN, buff=0.18)
+        desarrollo.move_to(RIGHT * 3.54 + DOWN * 0.68)
+        # Para respetar el tamaño real de la fórmula, limitar su ancho a la columna.
+        if desarrollo.width > 5.7:
+            desarrollo.scale_to_fit_width(5.7)
+        self.play(Write(desarrollo), run_time=3.4)
+        pausa(self, 5)
+        resultado = matematica(r"S_4=\frac{567}{128}\approx4{,}4297", 0.89).set_color(DORADO)
+        resultado.move_to(RIGHT * 3.55 + DOWN * 2.25)
+        self.play(Write(resultado), run_time=1.8)
+        pausa(self, 6)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 4 - Refinamiento progresivo (CLAVE)
-# =============================================================================
-
+# ---------------------------------------------------------
+# 7. Mismo intervalo, n crece, tabla de valores numéricos
+# ---------------------------------------------------------
 class RefinamientoProgresivo(Scene):
-    """
-    QUÉ MUESTRA : la misma región con n = 4, 8, 16, 32.
-    CONCEPTO    : al aumentar n, Δx -> 0 y la aproximación mejora.
-    PARÁMETROS  : A, B, REFINAMIENTO_N_LIST.
-    """
-
     def construct(self):
-        ax, ax_labels, curva = U.crear_ejes_y_curva()
-        self.add(ax, ax_labels, curva)
-
-        titulo = Tex(r"Refinamiento: $n \uparrow \;\Rightarrow\; \Delta x \downarrow$")
-        titulo.scale(P.TEX_ESCALA)
-        titulo.to_edge(UP)
-        self.play(Write(titulo))
-
+        self.add(encabezado("Refinar: aumentar n y disminuir Δx"))
+        ax, etiquetas, curva = plano(lado_izquierdo=True)
+        self.add(ax, etiquetas, curva)
+        dato_ancho = matematica(r"\Delta x=\frac{3}{n}", 1.0)
+        dato_ancho.move_to(RIGHT * 3.5 + UP * 1.7)
+        self.add(dato_ancho)
+        valor_anterior = None
+        rects_anteriores = None
         for n in P.REFINAMIENTO_N_LIST:
-            dx = (P.B - P.A) / n
-            rects = U.crear_rectangulos_grupo(ax, n, "midpoint", opacity=0.35)
-
-            info = MathTex(
-                r"n = " + str(n) + r",\quad \Delta x = \frac{3}{"
-                + str(n) + r"} = " + f"{dx:.4f}"
-            )
-            info.scale(P.TEX_ESCALA)
-            info.to_edge(DOWN)
-
-            self.play(FadeIn(rects), Write(info), run_time=1.2)
-            self.wait(1.2)
-            self.play(FadeOut(rects, info), run_time=0.6)
-
-        concl1 = Tex(r"Al aumentar $n$, los rectángulos se hacen más estrechos")
-        concl2 = Tex(r"La aproximación a la región mejora progresivamente")
-        concl1.scale(P.TEX_ESCALA)
-        concl2.scale(P.TEX_ESCALA)
-        concl1.next_to(curva, UP, buff=0.4)
-        concl2.next_to(concl1, DOWN, buff=0.15)
-
-        self.play(Write(concl1))
-        self.play(Write(concl2))
-        self.wait(2.5)
-
-        self.play(FadeOut(titulo, concl1, concl2, curva, ax, ax_labels))
+            rects = U.crear_rectangulos_grupo(ax, n, criterio="midpoint", opacity=0.28)
+            valor = U.valor_suma_riemann(n, "midpoint")
+            ficha = VGroup(
+                matematica(r"n="+str(n), 0.95),
+                matematica(r"\Delta x=\frac{3}{"+str(n)+r"}", 0.82),
+                matematica(r"S_{"+str(n)+r"}\approx"+f"{valor:.5f}", 0.9),
+            ).arrange(DOWN, buff=0.35).move_to(RIGHT * 3.52 + DOWN * 0.38)
+            if rects_anteriores is None:
+                self.play(FadeIn(rects), FadeIn(ficha), run_time=1.3)
+            else:
+                self.play(ReplacementTransform(rects_anteriores, rects),
+                          ReplacementTransform(valor_anterior, ficha), run_time=1.8)
+            pausa(self, 5.2)
+            rects_anteriores, valor_anterior = rects, ficha
+        self.play(Write(pie(texto("Las sumas se acercan a 4,5", 28, DORADO))), run_time=1)
+        pausa(self, 4.2)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 5 - Conexión suma -> integral (CLAVE)
-# =============================================================================
-
-class TransicionSumaIntegral(Scene):
-    r"""
-    QUÉ MUESTRA : la transformación de Σ f(x_i^*) Δx en ∫ f(x) dx.
-    CONCEPTO    : paso de lo discreto (suma finita) a lo continuo (integral):
-                  Σ -> ∫ , f(x_i^*) -> f(x) , Δx -> dx.
-    PARÁMETROS  : (simbólico; no usa datos numéricos).
-    """
-
+# ---------------------------------------------------------
+# 8. Algebra esencial del ejemplo: usar identidades sin saturar pantalla
+# ---------------------------------------------------------
+class CalculoGeneral(Scene):
     def construct(self):
-        titulo = Tex(r"De la suma finita a la integral definida")
-        titulo.scale(P.TITULO_ESCALA)
-        titulo.to_edge(UP)
-        self.play(Write(titulo))
-        self.wait(0.5)
-
-        # Fórmula por partes (permite resaltar cada símbolo)
-        parte_sn = MathTex("S_n =")
-        parte_suma = MathTex(r"\sum_{i=1}^{n}")
-        parte_f = MathTex(r"f(x_i^*)")
-        parte_dx = MathTex(r"\Delta x")
-        formula = VGroup(parte_sn, parte_suma, parte_f, parte_dx).arrange(RIGHT, buff=0.12)
-        formula.scale(P.FORMULA_GRANDE_ESCALA)
-        formula.shift(UP * 0.8)
-
-        self.play(Write(formula))
-        self.wait(1.2)
-
-        # Resaltar Σ
-        box1 = SurroundingRectangle(parte_suma, color=YELLOW, buff=0.08)
-        label1 = Tex(r"$\sum$: suma discreta (finita)")
-        label1.scale(P.TEX_ESCALA)
-        label1.next_to(box1, UP, buff=0.15).set_color(YELLOW)
-        self.play(Create(box1), Write(label1))
-        self.wait(1.2)
-        self.play(FadeOut(box1, label1))
-
-        # Resaltar f(x_i^*)
-        box2 = SurroundingRectangle(parte_f, color=ORANGE, buff=0.08)
-        label2 = Tex(r"$f(x_i^*)$: valor representativo del subintervalo")
-        label2.scale(P.TEX_ESCALA)
-        label2.next_to(box2, UP, buff=0.15).set_color(ORANGE)
-        self.play(Create(box2), Write(label2))
-        self.wait(1.2)
-        self.play(FadeOut(box2, label2))
-
-        # Resaltar Δx
-        box3 = SurroundingRectangle(parte_dx, color=GREEN, buff=0.08)
-        label3 = Tex(r"$\Delta x$: ancho de cada rectángulo")
-        label3.scale(P.TEX_ESCALA)
-        label3.next_to(box3, UP, buff=0.15).set_color(GREEN)
-        self.play(Create(box3), Write(label3))
-        self.wait(1.2)
-        self.play(FadeOut(box3, label3))
-
-        # Transformación a la integral
-        integral_tex = MathTex(r"\int_{a}^{b} f(x)\,dx")
-        integral_tex.scale(P.FORMULA_GRANDE_ESCALA)
-        self.play(ReplacementTransform(formula, integral_tex))
-        self.wait(1.5)
-
-        # Mapeo de símbolos (responde la pregunta central)
-        mapeo = Tex(
-            r"$\sum_{i=1}^{n} \;\longmapsto\; \int_{a}^{b}$, \quad "
-            r"$f(x_i^*) \;\longmapsto\; f(x)$, \quad "
-            r"$\Delta x \;\longmapsto\; dx$"
-        )
-        mapeo.scale(P.MAPEO_ESCALA)
-        mapeo.next_to(integral_tex, DOWN, buff=0.9)
-        self.play(Write(mapeo))
-        self.wait(3)
-
-        self.play(FadeOut(titulo, integral_tex, mapeo))
+        self.add(encabezado("De cuatro rectángulos a cualquier n"))
+        titulo = texto("Usamos la misma regla para todos los puntos medios", 25)
+        titulo.shift(UP * 2.35)
+        self.play(Write(titulo), run_time=1.3)
+        general = matematica(r"x_i^*=\left(i-\frac12\right)\frac3n", 1.14)
+        self.play(Write(general), run_time=1.7)
+        pausa(self, 4.0)
+        summ = matematica(r"S_n=\sum_{i=1}^{n}f(x_i^*)\frac3n", 1.18)
+        self.play(ReplacementTransform(general, summ), run_time=1.6)
+        pausa(self, 4.5)
+        aclaracion = texto("Simplificamos usando las fórmulas de sumatorias", 24, GRAY_B)
+        aclaracion.next_to(summ, DOWN, buff=0.7)
+        self.play(Write(aclaracion), run_time=1.2)
+        identidades = matematica(r"\sum_{i=1}^{n}i=\frac{n(n+1)}2\quad\sum_{i=1}^{n}i^2=\frac{n(n+1)(2n+1)}6", 0.73)
+        identidades.next_to(aclaracion, DOWN, buff=0.5)
+        self.play(Write(identidades), run_time=2.5)
+        pausa(self, 3.4)
+        intermedia = matematica(r"\sum_{i=1}^{n}\left(i-\frac12\right)^2=\frac{4n^3-n}{12}", 0.86)
+        intermedia.next_to(identidades, DOWN, buff=0.42)
+        self.play(Write(intermedia), run_time=1.7)
+        pausa(self, 2.4)
+        resultado = matematica(r"S_n=\frac92-\frac{9}{8n^2}", 1.32).set_color(DORADO)
+        self.play(FadeOut(summ, aclaracion, identidades, intermedia), FadeIn(resultado), run_time=1.9)
+        pausa(self, 6.1)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 6 - El límite como proceso (CLAVE)
-# =============================================================================
-
+# ---------------------------------------------------------
+# 9. Límite calculado: no se sustituye n por infinito
+# ---------------------------------------------------------
 class LimiteProceso(Scene):
-    """
-    QUÉ MUESTRA : la definición integral = lim(n→∞) Σ f(x_i^*)Δx.
-    CONCEPTO    : n→∞ es un proceso, no un valor que se sustituya; Δx→0.
-    PARÁMETROS  : (simbólico; no usa datos numéricos).
-    """
-
     def construct(self):
-        titulo = Tex(r"El papel del límite: $n \to +\infty$, \quad $\Delta x \to 0$")
-        titulo.scale(P.TITULO_ESCALA)
-        titulo.to_edge(UP)
-        self.play(Write(titulo))
-        self.wait(0.5)
-
-        limite_tex = MathTex(
-            r"\int_{a}^{b} f(x)\,dx = \lim_{n\to\infty}"
-            r"\left(\sum_{i=1}^{n} f(x_i^*)\,\Delta x\right)"
-        )
-        limite_tex.scale(P.MATH_TEX_ESCALA)
-        self.play(Write(limite_tex))
-        self.wait(2)
-
-        idea1 = Tex(r"$n \to \infty$ describe un \textbf{proceso}, no un valor que se sustituye")
-        idea2 = Tex(r"$\Delta x = \frac{b-a}{n} \to 0$ cuando la partición se hace más fina")
-        idea3 = Tex(r"El error disminuye a medida que refinamos la partición")
-        for idea in (idea1, idea2, idea3):
-            idea.scale(P.TEX_ESCALA)
-
-        idea1.next_to(limite_tex, DOWN, buff=0.6)
-        idea2.next_to(idea1, DOWN, buff=0.25)
-        idea3.next_to(idea2, DOWN, buff=0.25)
-
-        self.play(Write(idea1))
-        self.wait(1.8)
-        self.play(Write(idea2))
-        self.wait(1.8)
-        self.play(Write(idea3))
-        self.wait(2.5)
-
-        self.play(FadeOut(titulo, limite_tex, idea1, idea2, idea3))
+        self.add(encabezado("El límite de las sumas"))
+        fila1 = matematica(r"n\to\infty\qquad \Delta x=\frac3n\to 0", 0.98)
+        fila1.shift(UP * 1.75)
+        self.play(Write(fila1), run_time=1.8)
+        pausa(self, 2.0)
+        fila2 = matematica(r"\lim_{n\to\infty}S_n=\lim_{n\to\infty}\left(\frac92-\frac{9}{8n^2}\right)", 1.0)
+        self.play(Write(fila2), run_time=2.2)
+        pausa(self, 5.0)
+        fila3 = matematica(r"\frac{9}{8n^2}\to0\qquad\Longrightarrow\qquad\lim_{n\to\infty}S_n=\frac92", 0.93)
+        fila3.next_to(fila2, DOWN, buff=0.75)
+        self.play(Write(fila3), run_time=1.9)
+        pausa(self, 5.2)
+        self.play(Write(pie(texto("El límite es el valor exacto al que convergen las sumas", 23, DORADO))), run_time=1)
+        pausa(self, 4.1)
+        estado_limpio(self)
 
 
-# =============================================================================
-# SECCIÓN 7 - Respuesta explícita a la pregunta central
-# =============================================================================
+# ---------------------------------------------------------
+# 10. Relación real suma–límite–integral (corrige el reemplazo anterior)
+# ---------------------------------------------------------
+class TransicionSumaIntegral(Scene):
+    def construct(self):
+        self.add(encabezado("De la suma finita a la integral definida"))
+        suma = matematica(r"S_n=\sum_{i=1}^{n}f(x_i^*)\,\Delta x", 1.18)
+        suma.shift(UP * 1.58)
+        self.play(Write(suma), run_time=2.4)
+        pausa(self, 3)
+        flecha = matematica(r"\xrightarrow{\ \ n\to\infty\ \ }", 1.0).set_color(DORADO)
+        flecha.next_to(suma, DOWN, buff=0.52)
+        self.play(Write(flecha), run_time=1.4)
+        pausa(self, 2.4)
+        igualdad = matematica(r"\int_a^b f(x)\,dx=\lim_{n\to\infty}\sum_{i=1}^{n}f(x_i^*)\,\Delta x", 1.05)
+        igualdad.next_to(flecha, DOWN, buff=0.48)
+        self.play(Write(igualdad), run_time=2.6)
+        pausa(self, 6.0)
+        aviso = pie(texto("El límite conecta las expresiones; no reemplazamos símbolos aislados", 21, GRAY_B))
+        self.play(Write(aviso), run_time=1.5)
+        pausa(self, 3.0)
+        estado_limpio(self)
 
+
+# ---------------------------------------------------------
+# 11. Respuesta de forma explícita a la pregunta central
+# ---------------------------------------------------------
 class RespuestaPreguntaCentral(Scene):
-    """
-    QUÉ MUESTRA : la respuesta en 5 pasos y la conclusión final.
-    CONCEPTO    : conexión suma finita -> límite -> integral definida.
-    PARÁMETROS  : (simbólico; no usa datos numéricos).
-    """
-
     def construct(self):
-        pregunta = Tex(
-            r"Pregunta central: ¿cómo pasamos de una suma con un número \\ "
-            r"finito de rectángulos a una integral definida?"
-        )
-        pregunta.scale(P.TEX_ESCALA)
-        pregunta.to_edge(UP)
-        self.play(Write(pregunta))
-        self.wait(1.2)
-
-        pasos = [
-            r"1. Partimos de una suma de Riemann finita: $S_n = \sum_{i=1}^{n} f(x_i^*)\,\Delta x$",
-            r"2. Refinamos la partición: aumentamos $n$ indefinidamente",
-            r"3. Entonces $\Delta x \to 0$ y los rectángulos se ajustan mejor a la curva",
-            r"4. Tomamos el límite: $\lim_{n\to\infty}\sum_{i=1}^{n} f(x_i^*)\,\Delta x$",
-            r"5. Ese límite define la integral definida: $\int_{a}^{b} f(x)\,dx$",
+        self.add(encabezado("¿Cómo llegamos a la integral definida?"))
+        secuencia = [
+            texto("1. Construimos rectángulos", 28),
+            texto("2. Sumamos sus aportes", 28),
+            texto("3. Refinamos la partición", 28),
+            texto("4. Tomamos el límite", 28, DORADO),
         ]
-        pasos_mobs = VGroup(*[Tex(p) for p in pasos])
-        pasos_mobs.scale(0.72)
-        pasos_mobs.arrange(DOWN, buff=0.28, aligned_edge=LEFT)
-        pasos_mobs.next_to(pregunta, DOWN, buff=0.5)
+        grupo = VGroup(*secuencia).arrange(DOWN, buff=0.37, aligned_edge=LEFT)
+        grupo.move_to(UP * 0.38)
+        for l in grupo:
+            self.play(FadeIn(l, shift=RIGHT * 0.15), run_time=0.8)
+            pausa(self, 1.2)
+        conclusion = matematica(r"\int_0^3\left[\frac12(x-1)^2+1\right]dx=\frac92=4{,}5", 0.95)
+        pie(conclusion)
+        self.play(Write(conclusion), run_time=2.4)
+        pausa(self, 7.0)
+        estado_limpio(self)
 
-        for mob in pasos_mobs:
-            self.play(Write(mob), run_time=0.8)
-            self.wait(0.6)
 
-        concl = Tex(
-            r"Así pasamos del \textbf{discreto} (suma finita) al "
-            r"\textbf{continuo} (integral definida)."
-        )
-        concl.scale(P.TITULO_ESCALA)
-        concl.to_edge(DOWN, buff=0.5)
-        self.play(Write(concl))
-        self.wait(3)
-
-        self.play(FadeOut(pregunta, pasos_mobs, concl))
+# ---------------------------------------------------------
+# 12. Créditos legibles: fuentes deben figurar en el video según la pauta
+# ---------------------------------------------------------
+class Creditos(Scene):
+    def construct(self):
+        self.play(Write(texto("Fuentes y recursos", 39).shift(UP * 2.65)), run_time=1.2)
+        referencias = VGroup(
+            texto("Apunte de Cálculo Intermedio: Introducción a la integral", 21),
+            texto("Stewart · Cálculo de una variable: Conceptos y contextos (4.ª ed.)", 21),
+            texto("Larson, Hostetler y Edwards · Cálculo y geometría analítica (vol. 1)", 21),
+            texto("Manim Community · docs.manim.community", 21),
+            texto("Motivación audiovisual: BlueDot (YouTube, 2023)", 21),
+        ).arrange(DOWN, buff=0.42, aligned_edge=LEFT).move_to(DOWN * 0.1)
+        for r in referencias:
+            self.play(FadeIn(r), run_time=0.55)
+        pie_txt = texto("Equipo Grupo 4 · Cálculo Intermedio", 23, AZUL)
+        pie(pie_txt)
+        self.play(Write(pie_txt), run_time=0.7)
+        pausa(self, 7.0)
+        estado_limpio(self)

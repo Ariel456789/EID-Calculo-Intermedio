@@ -11,6 +11,7 @@ rectángulos a una integral definida?
 """
 
 from manim import *
+import os
 
 
 # =============================================================================
@@ -102,3 +103,10 @@ TEX_ESCALA = 0.8
 MATH_TEX_ESCALA = 0.85
 FORMULA_GRANDE_ESCALA = 1.1
 MAPEO_ESCALA = 0.8
+
+
+# Ajustes de edición: alargar/acortar las pausas de espera para la locución.
+FACTOR_PAUSAS = float(os.getenv("EID_FACTOR_PAUSAS", "1.0"))
+
+# Confirmar integrantes habilitados con la docente antes de la entrega final.
+TEXTO_INTEGRANTES = "Gustavo Martínez · Ariel Díaz · Luciana Lagos"
