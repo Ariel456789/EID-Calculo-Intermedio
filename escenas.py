@@ -216,41 +216,53 @@ class SumaRiemannConstruccion(Scene):
         ax, etiquetas, curva = plano(lado_izquierdo=True)
         self.add(ax, etiquetas, curva)
         n = P.N_INICIAL
-        dx = (P.B-P.A)/n
+        dx = (P.B - P.A) / n
+
+        # ETAPA 1: puntos muestra y rectángulos (sin fórmulas que se superpongan).
         formula_m = matematica(r"x_i^*=\left(i-\frac12\right)\Delta x", 0.84)
-        formula_m.move_to(RIGHT * 3.55 + UP * 1.52)
-        self.play(Write(formula_m), run_time=1.8)
-        puntos = matematica(r"\frac38,\ \frac98,\ \frac{15}8,\ \frac{21}8", 0.85)
-        puntos.next_to(formula_m, DOWN, buff=0.38)
-        self.play(Write(puntos), run_time=1.7)
-        rects = VGroup()
-        for i in range(1, n+1):
-            x_left, x_right = P.A+(i-1)*dx, P.A+i*dx
+        formula_m.move_to(RIGHT * 3.52 + UP * 1.55)
+        self.play(Write(formula_m), run_time=1.6)
+
+        puntos = matematica(r"\frac38,\ \frac98,\ \frac{15}8,\ \frac{21}8", 0.82)
+        puntos.move_to(RIGHT * 3.52 + UP * 0.45)
+        self.play(Write(puntos), run_time=1.4)
+
+        for i in range(1, n + 1):
+            x_left, x_right = P.A + (i - 1) * dx, P.A + i * dx
             xstar = U.punto_muestra(x_left, x_right)
-            alto = P.F(xstar)
-            rect = indicador_rectangulo(ax, x_left, x_right, alto)
-            marcador = Dot(ax.c2p(xstar, alto), color=DORADO, radius=0.065)
-            rects.add(rect, marcador)
+            rect = indicador_rectangulo(ax, x_left, x_right, P.F(xstar))
+            marcador = Dot(ax.c2p(xstar, P.F(xstar)), color=DORADO, radius=0.065)
             self.play(FadeIn(rect), FadeIn(marcador), run_time=0.95)
-            pausa(self, 1.25)
-        aporte = matematica(r"A_i=f(x_i^*)\,\Delta x", 0.95)
-        aporte.move_to(RIGHT * 3.5 + DOWN * 0.12)
-        self.play(Write(aporte), run_time=1.3)
-        pausa(self, 2.4)
-        self.play(FadeOut(aporte), run_time=0.5)
-        sum_line1 = matematica(r"S_4=\frac34\left[f\left(\frac38\right)+f\left(\frac98\right)\right.", 0.72)
-        sum_line2 = matematica(r"\left.\qquad+f\left(\frac{15}8\right)+f\left(\frac{21}8\right)\right]", 0.75)
-        desarrollo = VGroup(sum_line1, sum_line2).arrange(DOWN, buff=0.18)
-        desarrollo.move_to(RIGHT * 3.54 + DOWN * 0.68)
-        # Para respetar el tamaño real de la fórmula, limitar su ancho a la columna.
-        if desarrollo.width > 5.7:
-            desarrollo.scale_to_fit_width(5.7)
+            pausa(self, 1.2)
+
+        aporte = matematica(r"A_i=f(x_i^*)\,\Delta x", 0.92)
+        aporte.move_to(RIGHT * 3.52 + DOWN * 0.95)
+        self.play(Write(aporte), run_time=1.2)
+        pausa(self, 2.5)
+
+        # ETAPA 2: limpiar la columna antes de desarrollar S_4.
+        self.play(FadeOut(formula_m), FadeOut(puntos), FadeOut(aporte), run_time=0.65)
+        sum_line1 = matematica(
+            r"S_4=\frac34\left[f\left(\frac38\right)+f\left(\frac98\right)\right.",
+            0.78,
+        )
+        sum_line2 = matematica(
+            r"\left.\qquad+f\left(\frac{15}8\right)+f\left(\frac{21}8\right)\right]",
+            0.78,
+        )
+        desarrollo = VGroup(sum_line1, sum_line2).arrange(DOWN, buff=0.30)
+        if desarrollo.width > 5.65:
+            desarrollo.scale_to_fit_width(5.65)
+        # Centro de la columna derecha; la separación es relativa al objeto completo.
+        desarrollo.move_to(RIGHT * 3.55 + UP * 0.37)
         self.play(Write(desarrollo), run_time=3.4)
-        pausa(self, 5)
-        resultado = matematica(r"S_4=\frac{567}{128}\approx4{,}4297", 0.89).set_color(DORADO)
-        resultado.move_to(RIGHT * 3.55 + DOWN * 2.25)
-        self.play(Write(resultado), run_time=1.8)
-        pausa(self, 6)
+        pausa(self, 4.5)
+
+        # ETAPA 3: al calcular el resultado ya no se conserva la expresión larga.
+        resultado = matematica(r"S_4=\frac{567}{128}\approx4{,}4297", 1.05).set_color(DORADO)
+        resultado.move_to(RIGHT * 3.55 + DOWN * 0.35)
+        self.play(FadeOut(desarrollo), FadeIn(resultado), run_time=1.2)
+        pausa(self, 5.8)
         estado_limpio(self)
 
 
@@ -293,29 +305,49 @@ class RefinamientoProgresivo(Scene):
 class CalculoGeneral(Scene):
     def construct(self):
         self.add(encabezado("De cuatro rectángulos a cualquier n"))
-        titulo = texto("Usamos la misma regla para todos los puntos medios", 25)
-        titulo.shift(UP * 2.35)
-        self.play(Write(titulo), run_time=1.3)
-        general = matematica(r"x_i^*=\left(i-\frac12\right)\frac3n", 1.14)
+
+        # PASO 1. La regla del punto medio, para cualquier n.
+        subtitulo = texto("La misma regla de puntos medios sirve para cualquier n", 24)
+        subtitulo.move_to(UP * 2.20)
+        self.play(Write(subtitulo), run_time=1.2)
+        general = matematica(r"x_i^*=\left(i-\frac12\right)\frac3n", 1.16)
+        general.move_to(DOWN * 0.10)
         self.play(Write(general), run_time=1.7)
-        pausa(self, 4.0)
-        summ = matematica(r"S_n=\sum_{i=1}^{n}f(x_i^*)\frac3n", 1.18)
-        self.play(ReplacementTransform(general, summ), run_time=1.6)
-        pausa(self, 4.5)
-        aclaracion = texto("Simplificamos usando las fórmulas de sumatorias", 24, GRAY_B)
-        aclaracion.next_to(summ, DOWN, buff=0.7)
-        self.play(Write(aclaracion), run_time=1.2)
-        identidades = matematica(r"\sum_{i=1}^{n}i=\frac{n(n+1)}2\quad\sum_{i=1}^{n}i^2=\frac{n(n+1)(2n+1)}6", 0.73)
-        identidades.next_to(aclaracion, DOWN, buff=0.5)
-        self.play(Write(identidades), run_time=2.5)
-        pausa(self, 3.4)
-        intermedia = matematica(r"\sum_{i=1}^{n}\left(i-\frac12\right)^2=\frac{4n^3-n}{12}", 0.86)
-        intermedia.next_to(identidades, DOWN, buff=0.42)
-        self.play(Write(intermedia), run_time=1.7)
-        pausa(self, 2.4)
-        resultado = matematica(r"S_n=\frac92-\frac{9}{8n^2}", 1.32).set_color(DORADO)
-        self.play(FadeOut(summ, aclaracion, identidades, intermedia), FadeIn(resultado), run_time=1.9)
-        pausa(self, 6.1)
+        pausa(self, 3.7)
+
+        # PASO 2. Suma general. Reemplaza el paso anterior, no lo apila.
+        summ = matematica(r"S_n=\sum_{i=1}^{n}f(x_i^*)\frac3n", 1.17)
+        summ.move_to(DOWN * 0.10)
+        self.play(ReplacementTransform(general, summ), run_time=1.7)
+        pausa(self, 4.2)
+
+        # PASO 3. Identidades en su propia pantalla. Sin sumatoria grande encima.
+        subtitulo2 = texto("Aplicamos dos identidades de sumatorias", 25)
+        subtitulo2.move_to(UP * 2.20)
+        self.play(FadeOut(summ), ReplacementTransform(subtitulo, subtitulo2), run_time=0.85)
+        identidad1 = matematica(r"\sum_{i=1}^{n}i=\frac{n(n+1)}2", 1.00)
+        identidad2 = matematica(r"\sum_{i=1}^{n}i^2=\frac{n(n+1)(2n+1)}6", 0.98)
+        identidad1.move_to(UP * 0.70)
+        identidad2.move_to(DOWN * 0.88)
+        self.play(Write(identidad1), run_time=1.9)
+        self.play(Write(identidad2), run_time=2.0)
+        pausa(self, 3.0)
+
+        # PASO 4. Resultado intermedio útil para comprender el desarrollo en LaTeX.
+        subtitulo3 = texto("Aplicadas a los puntos medios, obtenemos", 24)
+        subtitulo3.move_to(UP * 2.20)
+        intermedia = matematica(r"\sum_{i=1}^{n}\left(i-\frac12\right)^2=\frac{4n^3-n}{12}", 1.00)
+        intermedia.move_to(DOWN * 0.05)
+        self.play(FadeOut(identidad1), FadeOut(identidad2),
+                  ReplacementTransform(subtitulo2, subtitulo3), run_time=0.9)
+        self.play(Write(intermedia), run_time=1.8)
+        pausa(self, 2.6)
+
+        # PASO 5. Resultado general, una sola expresión bien centrada.
+        resultado = matematica(r"S_n=\frac92-\frac{9}{8n^2}", 1.35).set_color(DORADO)
+        resultado.move_to(DOWN * 0.10)
+        self.play(FadeOut(intermedia), FadeOut(subtitulo3), FadeIn(resultado), run_time=1.9)
+        pausa(self, 5.6)
         estado_limpio(self)
 
 
