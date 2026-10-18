@@ -1,17 +1,9 @@
-"""Escenas del EID Grupo 4 (Manim Community).
-
-Storyboard: guion_storyboard_EID_G04_v2.tex. El video base no incluye audio:
-las pausas están previstas para sincronizar narración propia al editar el MP4.
-
-Concepto central: la integral definida es el LIMITE de sumas de Riemann;
-no se obtiene sustituyendo símbolos de manera individual.
-"""
+"""Escenas del EID Grupo 4 (Manim Community)."""
 
 from manim import *
 import parametros as P
 import utilidades as U
 
-# Texto visible intencionalmente breve: la explicación completa será oral.
 TEXTO = "DejaVu Sans"
 COLOR_BASE = WHITE
 AZUL = BLUE_C
@@ -46,7 +38,6 @@ def pie(obj):
 
 
 def plano(funcion=True, lado_izquierdo=True):
-    """Ejes con escala consistente; se reserva espacio para fórmulas a la derecha."""
     ax = Axes(**P.AXES_CONFIG)
     ax.shift(LEFT * (2.35 if lado_izquierdo else 0) + DOWN * 0.4)
     etiquetas = ax.get_axis_labels(x_label="x", y_label="f(x)")
@@ -68,13 +59,9 @@ def indicador_rectangulo(ax, izq, der, altura, color=NARANJA, opacidad=0.38):
 
 
 def pausa(escena, segundos):
-    """Espacio de locución; modificable globalmente en parametros.py."""
     escena.wait(segundos * P.FACTOR_PAUSAS)
 
 
-# ---------------------------------------------------------
-# 1. Presentación obligatoria (confirmar integrantes antes del render final)
-# ---------------------------------------------------------
 class Presentacion(Scene):
     def construct(self):
         self.play(Write(texto("Cálculo Intermedio · EID · Grupo 4", 32).shift(UP * 2.8)), run_time=1.5)
@@ -90,9 +77,6 @@ class Presentacion(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 2. Motivación: un automóvil a rapidez constante
-# ---------------------------------------------------------
 class AutoVelocidadConstante(Scene):
     def construct(self):
         self.add(encabezado("Una rapidez constante: un área fácil de calcular"))
@@ -123,9 +107,6 @@ class AutoVelocidadConstante(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 3. Motivación: ¿qué ocurre si la rapidez varía?
-# ---------------------------------------------------------
 class AutoVelocidadVariable(Scene):
     def construct(self):
         self.add(encabezado("¿Y si la rapidez cambia durante el recorrido?"))
@@ -142,7 +123,6 @@ class AutoVelocidadVariable(Scene):
         self.play(FadeIn(relleno), Write(txt), run_time=1.5)
         pausa(self, 3.5)
         self.play(FadeOut(txt))
-        # Cuatro rectángulos ilustrativos: sin convertir el automóvil en otro ejemplo principal.
         rects = VGroup()
         for i in range(4):
             x0, x1 = i * 1.25, (i + 1) * 1.25
@@ -154,9 +134,6 @@ class AutoVelocidadVariable(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 4. Se establece el ejemplo matemático principal.
-# ---------------------------------------------------------
 class RegionInicial(Scene):
     def construct(self):
         self.add(encabezado("Nuestro ejemplo: una región bajo una curva"))
@@ -177,9 +154,6 @@ class RegionInicial(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 5. Partición, ancho de cada subintervalo y punto muestra
-# ---------------------------------------------------------
 class ParticionInicial(Scene):
     def construct(self):
         self.add(encabezado("Dividimos el intervalo en cuatro partes"))
@@ -207,9 +181,6 @@ class ParticionInicial(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 6. Suma S4 con puntos medios: parte que no debe quedarse como opcional
-# ---------------------------------------------------------
 class SumaRiemannConstruccion(Scene):
     def construct(self):
         self.add(encabezado("Elegimos puntos medios y construimos la suma"))
@@ -218,7 +189,6 @@ class SumaRiemannConstruccion(Scene):
         n = P.N_INICIAL
         dx = (P.B - P.A) / n
 
-        # ETAPA 1: puntos muestra y rectángulos (sin fórmulas que se superpongan).
         formula_m = matematica(r"x_i^*=\left(i-\frac12\right)\Delta x", 0.84)
         formula_m.move_to(RIGHT * 3.52 + UP * 1.55)
         self.play(Write(formula_m), run_time=1.6)
@@ -240,7 +210,6 @@ class SumaRiemannConstruccion(Scene):
         self.play(Write(aporte), run_time=1.2)
         pausa(self, 2.5)
 
-        # ETAPA 2: limpiar la columna antes de desarrollar S_4.
         self.play(FadeOut(formula_m), FadeOut(puntos), FadeOut(aporte), run_time=0.65)
         sum_line1 = matematica(
             r"S_4=\frac34\left[f\left(\frac38\right)+f\left(\frac98\right)\right.",
@@ -253,12 +222,10 @@ class SumaRiemannConstruccion(Scene):
         desarrollo = VGroup(sum_line1, sum_line2).arrange(DOWN, buff=0.30)
         if desarrollo.width > 5.65:
             desarrollo.scale_to_fit_width(5.65)
-        # Centro de la columna derecha; la separación es relativa al objeto completo.
         desarrollo.move_to(RIGHT * 3.55 + UP * 0.37)
         self.play(Write(desarrollo), run_time=3.4)
         pausa(self, 4.5)
 
-        # ETAPA 3: al calcular el resultado ya no se conserva la expresión larga.
         resultado = matematica(r"S_4=\frac{567}{128}\approx4{,}4297", 1.05).set_color(DORADO)
         resultado.move_to(RIGHT * 3.55 + DOWN * 0.35)
         self.play(FadeOut(desarrollo), FadeIn(resultado), run_time=1.2)
@@ -266,9 +233,6 @@ class SumaRiemannConstruccion(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 7. Mismo intervalo, n crece, tabla de valores numéricos
-# ---------------------------------------------------------
 class RefinamientoProgresivo(Scene):
     def construct(self):
         self.add(encabezado("Refinar: aumentar n y disminuir Δx"))
@@ -299,14 +263,10 @@ class RefinamientoProgresivo(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 8. Algebra esencial del ejemplo: usar identidades sin saturar pantalla
-# ---------------------------------------------------------
 class CalculoGeneral(Scene):
     def construct(self):
         self.add(encabezado("De cuatro rectángulos a cualquier n"))
 
-        # PASO 1. La regla del punto medio, para cualquier n.
         subtitulo = texto("La misma regla de puntos medios sirve para cualquier n", 24)
         subtitulo.move_to(UP * 2.20)
         self.play(Write(subtitulo), run_time=1.2)
@@ -315,13 +275,11 @@ class CalculoGeneral(Scene):
         self.play(Write(general), run_time=1.7)
         pausa(self, 3.7)
 
-        # PASO 2. Suma general. Reemplaza el paso anterior, no lo apila.
         summ = matematica(r"S_n=\sum_{i=1}^{n}f(x_i^*)\frac3n", 1.17)
         summ.move_to(DOWN * 0.10)
         self.play(ReplacementTransform(general, summ), run_time=1.7)
         pausa(self, 4.2)
 
-        # PASO 3. Identidades en su propia pantalla. Sin sumatoria grande encima.
         subtitulo2 = texto("Aplicamos dos identidades de sumatorias", 25)
         subtitulo2.move_to(UP * 2.20)
         self.play(FadeOut(summ), ReplacementTransform(subtitulo, subtitulo2), run_time=0.85)
@@ -333,7 +291,6 @@ class CalculoGeneral(Scene):
         self.play(Write(identidad2), run_time=2.0)
         pausa(self, 3.0)
 
-        # PASO 4. Resultado intermedio útil para comprender el desarrollo en LaTeX.
         subtitulo3 = texto("Aplicadas a los puntos medios, obtenemos", 24)
         subtitulo3.move_to(UP * 2.20)
         intermedia = matematica(r"\sum_{i=1}^{n}\left(i-\frac12\right)^2=\frac{4n^3-n}{12}", 1.00)
@@ -343,7 +300,6 @@ class CalculoGeneral(Scene):
         self.play(Write(intermedia), run_time=1.8)
         pausa(self, 2.6)
 
-        # PASO 5. Resultado general, una sola expresión bien centrada.
         resultado = matematica(r"S_n=\frac92-\frac{9}{8n^2}", 1.35).set_color(DORADO)
         resultado.move_to(DOWN * 0.10)
         self.play(FadeOut(intermedia), FadeOut(subtitulo3), FadeIn(resultado), run_time=1.9)
@@ -351,9 +307,6 @@ class CalculoGeneral(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 9. Límite calculado: no se sustituye n por infinito
-# ---------------------------------------------------------
 class LimiteProceso(Scene):
     def construct(self):
         self.add(encabezado("El límite de las sumas"))
@@ -373,9 +326,6 @@ class LimiteProceso(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 10. Relación real suma–límite–integral (corrige el reemplazo anterior)
-# ---------------------------------------------------------
 class TransicionSumaIntegral(Scene):
     def construct(self):
         self.add(encabezado("De la suma finita a la integral definida"))
@@ -397,9 +347,6 @@ class TransicionSumaIntegral(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 11. Respuesta de forma explícita a la pregunta central
-# ---------------------------------------------------------
 class RespuestaPreguntaCentral(Scene):
     def construct(self):
         self.add(encabezado("¿Cómo llegamos a la integral definida?"))
@@ -421,9 +368,6 @@ class RespuestaPreguntaCentral(Scene):
         estado_limpio(self)
 
 
-# ---------------------------------------------------------
-# 12. Créditos legibles: fuentes deben figurar en el video según la pauta
-# ---------------------------------------------------------
 class Creditos(Scene):
     def construct(self):
         self.play(Write(texto("Fuentes y recursos", 39).shift(UP * 2.65)), run_time=1.2)
