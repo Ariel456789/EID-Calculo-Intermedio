@@ -5,7 +5,6 @@
 **Asignatura:** MAT1188 — Cálculo Intermedio, Ingeniería Civil Informática  
 **Tecnología:** Manim Community (Python)
 
-> **Estado del repositorio:** fuente actualizada para el guion; el video base todavía requiere render, sincronización de voces y revisión final. **No se debe presentar el antiguo `video_final_grupo4.mp4` como el video actualizado.**
 
 ## Integrantes y participación
 
@@ -14,8 +13,6 @@
 | Gustavo Martínez | Desarrollo matemático, guion y revisión | gmartinezsenglar |
 | Ariel Díaz | Visualización, implementación y renderizado | Ariel456789 |
 | Luciana Lagos | Revisión e integración audiovisual (asignación inicial) | **Completar usuario** |
-
-**Importante:** la situación de participación de un integrante debe resolverse con la docente. La pauta establece que los cambios de integrantes requieren autorización y que el grupo no puede expulsar unilateralmente a un compañero. Hasta confirmación formal, no alterar la lista para aparentar un cambio aprobado. Ajustar las voces y la ficha según los integrantes *habilitados* que finalmente confirme la docente.
 
 ## Idea matemática y ejemplo
 
@@ -32,8 +29,8 @@
 
 ## Requisitos
 
-- Python: **comprobar la versión realmente utilizada** en el PC del equipo (`python --version`). El proyecto original anotaba 3.12, pero el ZIP también contenía caché de Python 3.14, por lo que no se da una versión por confirmada.
-- Manim Community (dependencia en `requirements.txt`); anotar la versión obtenida mediante `python -m manim --version`.
+- Python: 3.xx
+- Manim Community (dependencia en `requirements.txt`);
 - Distribución LaTeX (en Windows puede ser MiKTeX) para `MathTex`.
 - FFmpeg (provisto por `imageio-ffmpeg` o instalado en PATH).
 
@@ -54,8 +51,6 @@ EID-Calculo-Intermedio/
 ├── utilidades.py              # Ejes, puntos muestra, rectángulos y sumas
 ├── build.py                   # Renderizado por escena y ensamblaje base
 ├── requirements.txt           # Dependencias Python
-├── GUIA_PARA_ARIEL.md         # Revisión técnica antes de subir
-├── PISTA_DE_NARRACION.md      # Asignación de voz y sincronización mañana
 └── media/                     # Generado por Manim, no es fuente obligatoria
 ```
 
@@ -101,8 +96,6 @@ python build.py --calidad qm   # base recomendable 720p30
 python build.py --calidad qh   # alta, más lenta
 ```
 
-Por defecto se genera **`video_base_sin_narracion.mp4`**, sin alterar el archivo antiguo `video_final_grupo4.mp4`. Después de sincronizar las voces, exportar el MP4 final con el nombre oficial.
-
 Para ampliar o reducir **solo las esperas**, no la velocidad de los movimientos:
 
 ```bash
@@ -119,14 +112,6 @@ python build.py --sin-render --calidad qm
 ```
 
 **Advertencia:** `--sin-render` reutiliza clips que podrían pertenecer a otra versión. Verificarlos antes.
-
-## Narración y audio (pendiente)
-
-- Grabar narración por escenas y guardar originales sin compresión excesiva.
-- Cada integrante **habilitado** debe pronunciar una explicación **matemática sustantiva** con su voz, e identificarse por nombre en el video.
-- Sincronizar la voz con fórmulas o figuras en pantalla; no es necesario leer todas las expresiones en voz alta.
-- Priorizar audio claro, sin música que tape las voces.
-- Ver `PISTA_DE_NARRACION.md` para repartir escenas y dejar constancia de tiempos.
 
 ## Fuentes matemáticas y recursos
 
